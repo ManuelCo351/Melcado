@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado Rojo 🔥</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo">MERCADO <span class="text-red">ROJO</span></div>
+        <div class="search-bar">
+            <input type="text" id="buscador" placeholder="Buscar..." onkeyup="filtrarPorBusqueda()">
+        </div>
+        <button id="btn-publicar" onclick="abrirModalAgregar()">+ PUBLICAR</button>
+    </header>
+
+    <div class="filtros-container">
+        <button class="pill active" onclick="filtrar('todos', this)">Todos</button>
+        <button class="pill" onclick="filtrar('mujeres', this)">Mujeres</button>
+        <button class="pill" onclick="filtrar('hombres', this)">Hombres</button>
+        <button class="pill" onclick="filtrar('enanos', this)">Enanos</button>
+        <button class="pill" onclick="filtrar('perros', this)">Perros</button>
+        
+        <select id="ordenar" onchange="ordenarProductos()">
+            <option value="defecto">Ordenar por...</option>
+            <option value="calidadPrecio">🔥 Mejor Calidad/Precio</option>
+            <option value="barato">💲 Menor Precio</option>
+            <option value="oral">👄 Mejor Oral</option>
+        </select>
+    </div>
+
+    <main id="contenedor-cards"></main>
+
+    <div id="modal-agregar" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModales()">&times;</span>
+            <h2>Nueva Publicación</h2>
+            <input type="text" id="input-nombre" placeholder="Nombre o Apodo">
+            <select id="input-categoria">
+                <option value="mujeres">Mujer</option>
+                <option value="hombres">Hombre</option>
+                <option value="enanos">Enano</option>
+                <option value="perros">Perro</option>
+            </select>
+            <input type="number" id="input-precio" placeholder="Precio ($)">
+            
+            <div class="rango-box">
+                <label>Nivel Oral (1-10): <span id="val-oral">5</span></label>
+                <input type="range" id="input-oral" min="1" max="10" value="5" oninput="document.getElementById('val-oral').innerText = this.value">
+            </div>
+
+            <div class="rango-box">
+                <label>Movilidad (1-10): <span id="val-mov">5</span></label>
+                <input type="range" id="input-movilidad" min="1" max="10" value="5" oninput="document.getElementById('val-mov').innerText = this.value">
+            </div>
+
+            <input type="text" id="input-foto" placeholder="URL de Foto (o deja vacío)">
+            <input type="text" id="input-whatsapp" placeholder="Teléfono (Ej: 54911...)">
+            <button class="btn-full-red" onclick="guardarNuevoPerfil()">CONFIRMAR PUBLICACIÓN</button>
+        </div>
+    </div>
+
+    <div id="modal-detalle" class="modal">
+        <div class="modal-content detalle-content">
+            <span class="close" onclick="cerrarModales()">&times;</span>
+            
+            <div id="detalle-info"></div>
+
+            <div class="seccion-comentarios">
+                <h3>Opiniones sobre el servicio</h3>
+                <div id="lista-comentarios" class="lista-comentarios">
+                    </div>
+                
+                <div class="agregar-comentario">
+                    <input type="text" id="txt-comentario" placeholder="Escribe tu opinión honesta...">
+                    <button onclick="publicarComentario()">OPINAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+  </html>
+  
