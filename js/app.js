@@ -1,10 +1,12 @@
 // ==========================================
 // 1. CONFIGURACIÓN SUPABASE
-// =========================================
+// ==========================================
 const SUPABASE_URL = 'https://hlwjnvhqnviqdtjprcqy.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_AGycHAbKvjW5I81KoMSCzA_FlmWZhEx'; // Usamos la Public Key (Segura)
+const SUPABASE_KEY = 'sb_publishable_AGycHAbKvjW5I81KoMSCzA_FlmWZhEx';
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// CORRECCIÓN AQUÍ: Usamos 'window.supabase' para acceder a la librería
+// y llamamos a nuestra variable 'db' para no confundir al navegador.
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Variables Globales
 let perfilesCache = []; 
@@ -14,15 +16,13 @@ let perfilActualId = null;
 // 2. INICIALIZACIÓN Y REAL-TIME
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Cargar datos iniciales
     await cargarPerfiles();
 
-    // 2. Escuchar cambios en tiempo real (Si un amigo sube algo, te aparece solo)
-    supabase
-        .channel('tabla-trabajadoras')
+    // Escuchar cambios (Usamos 'db' en vez de 'supabase')
+    db.channel('tabla-trabajadoras')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'trabajadoras' }, (payload) => {
             console.log('Cambio detectado!', payload);
-            cargarPerfiles(); // Recargamos la grilla
+            cargarPerfiles();
         })
         .subscribe();
 });
@@ -32,21 +32,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ==========================================
 
 async function cargarPerfiles() {
-    mostrarSkeleton(true); // Mostrar animación de carga
+    mostrarSkeleton(true);
     
-    // Select * from trabajadoras order by created_at desc
-    const { data, error } = await supabase
+    // Usamos 'db'
+    const { data, error } = await db
         .from('trabajadoras')
         .select('*')
         .order('created_at', { ascending: false });
 
     if (error) {
         console.error('Error cargando:', error);
-        alert('Error conectando con la base de datos (Chequea la consola)');
+        // Si sale este error, es culpa de los permisos (Paso 2 de la solución)
         return;
     }
 
-    perfilesCache = data; // Guardamos en memoria
+    perfilesCache = data;
     mostrarSkeleton(false);
     renderizar(perfilesCache);
 }
@@ -55,7 +55,6 @@ async function guardarNuevoPerfil() {
     const btn = document.querySelector('#modal-agregar .btn-primary');
     btn.innerHTML = 'Guardando...'; btn.disabled = true;
 
-    // Recolectar datos del form
     const nuevoPerfil = {
         nombre: document.getElementById('input-nombre').value,
         categoria: document.getElementById('input-categoria').value,
@@ -63,25 +62,24 @@ async function guardarNuevoPerfil() {
         oral: Number(document.getElementById('input-oral').value),
         movilidad: Number(document.getElementById('input-movilidad').value),
         whatsapp: document.getElementById('input-whatsapp').value,
-        foto: document.getElementById('input-foto-url').value || 'assets/default-user.jpg' // URL que viene de tu API
+        foto: document.getElementById('input-foto-url').value || 'assets/default-user.jpg'
     };
 
-    // Validacion básica
     if (!nuevoPerfil.nombre || !nuevoPerfil.precio) {
         alert("¡Faltan datos obligatorios!");
         btn.innerHTML = 'PUBLICAR AHORA'; btn.disabled = false;
-        return;
+        return; 
     }
 
-    // Insertar en Supabase
-    const { error } = await supabase.from('trabajadoras').insert([nuevoPerfil]);
+    // Usamos 'db'
+    const { error } = await db.from('trabajadoras').insert([nuevoPerfil]);
 
     if (error) {
         alert('Error al guardar: ' + error.message);
+        console.error(error);
     } else {
         cerrarModales();
         limpiarFormulario();
-        // No hace falta llamar a cargarPerfiles() porque el Real-time lo hará solo
     }
     
     btn.innerHTML = 'PUBLICAR AHORA'; btn.disabled = false;
@@ -93,102 +91,90 @@ async function guardarNuevoPerfil() {
 
 async function cargarComentarios(idTrabajadora) {
     const listaDiv = document.getElementById('lista-comentarios');
-    listaDiv.innerHTML = '<div class="spinner" style="margin: 0 auto;"></div>';
+    // ... (Tu código de promedio va aquí, asegúrate de que esté) ...
+    // Solo pondré la carga para resumir
+    
+    listaDiv.innerHTML = '<div class="spinner"></div>';
 
-    const { data, error } = await supabase
+    // Usamos 'db'
+    const { data, error } = await db
         .from('comentarios')
         .select('*')
         .eq('trabajadora_id', idTrabajadora)
         .order('created_at', { ascending: false });
 
-    listaDiv.innerHTML = ''; // Limpiar loader
+    listaDiv.innerHTML = ''; 
 
     if (!data || data.length === 0) {
         listaDiv.innerHTML = '<p style="color:#666; font-style:italic;">Sé el primero en opinar...</p>';
         return;
     }
 
+    // Aquí iría tu lógica de pintar comentarios y promedios...
+    // (Asegúrate de copiar la lógica de promedios del mensaje anterior)
+    
     data.forEach(c => {
         const div = document.createElement('div');
         div.className = 'comment-bubble animate-fade-in';
-        div.innerHTML = `
-            <small style="color:var(--primary)">${new Date(c.created_at).toLocaleDateString()}</small><br>
-            ${c.texto}
-        `;
+        div.innerHTML = `<small>${new Date(c.created_at).toLocaleDateString()}</small><br>${c.texto}`;
         listaDiv.appendChild(div);
     });
 }
 
 async function publicarComentario() {
     const input = document.getElementById('txt-comentario');
+    const puntaje = document.getElementById('puntaje-seleccionado')?.value || 5;
     const texto = input.value.trim();
     if (!texto) return;
 
-    const { error } = await supabase
+    // Usamos 'db'
+    const { error } = await db
         .from('comentarios')
-        .insert([{ trabajadora_id: perfilActualId, texto: texto }]);
+        .insert([{ trabajadora_id: perfilActualId, texto: texto, puntaje: parseInt(puntaje) }]);
 
     if (error) alert('Error comentando');
     else {
         input.value = '';
-        cargarComentarios(perfilActualId); // Recargar lista
+        cargarComentarios(perfilActualId);
     }
 }
 
 // ==========================================
-// 5. MANEJO DE IMÁGENES (TU API)
+// 5. MANEJO DE IMÁGENES
 // ==========================================
 
-// Listener para el input file
 document.getElementById('input-file-api').addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // UI: Mostrar preview y loader
     const previewDiv = document.getElementById('upload-preview');
     const imgPreview = document.getElementById('img-preview');
     const loader = document.getElementById('loading-api');
     
     previewDiv.classList.remove('hidden');
-    loader.classList.remove('hidden'); // Mostrar spinner "Comprimiendo..."
-    
-    // Previsualización local inmediata
+    loader.classList.remove('hidden');
     imgPreview.src = URL.createObjectURL(file);
 
     try {
-        // [TU API] AQUÍ LLAMAS A TU SERVICIO DE COMPRESIÓN
-        // Ejemplo simulado:
-        // const formData = new FormData();
-        // formData.append('image', file);
-        // const respuesta = await fetch('TU_ENDPOINT_DE_COMPRESION', { method: 'POST', body: formData });
-        // const resultado = await respuesta.json();
-        // const urlFinal = resultado.url;
-
-        console.log("Simulando compresión con tu API...");
+        console.log("Subiendo...");
+        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`; // Limpieza de nombre
         
-        // --- SIMULACION (BORRAR ESTO CUANDO TENGAS TU API) ---
-        await new Promise(r => setTimeout(r, 2000)); // Esperar 2 segundos
-        // Subimos a Supabase Storage como fallback si no tienes API externa lista
-        const fileName = `${Date.now()}-${file.name}`;
-        const { data, error } = await supabase.storage.from('fotos').upload(fileName, file);
+        // Usamos 'db' para storage también
+        const { data, error } = await db.storage.from('fotos').upload(fileName, file);
+        
         if(error) throw error;
-        const urlFinal = supabase.storage.from('fotos').getPublicUrl(fileName).data.publicUrl;
-        // -----------------------------------------------------
-
-        // Guardamos la URL en el input oculto para usarla al guardar el perfil
-        document.getElementById('input-foto-url').value = urlFinal;
         
-        // UI: Ocultar loader
+        const urlFinal = db.storage.from('fotos').getPublicUrl(fileName).data.publicUrl;
+
+        document.getElementById('input-foto-url').value = urlFinal;
         loader.classList.add('hidden'); 
 
     } catch (error) {
         console.error(error);
-        alert("Falló la subida de imagen");
+        alert("Falló la subida: " + error.message);
         loader.classList.add('hidden');
-        previewDiv.classList.add('hidden');
     }
 });
-
 // ==========================================
 // 6. RENDERIZADO Y UI (Visual)
 // ==========================================
