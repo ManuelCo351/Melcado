@@ -1,87 +1,182 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado Rojo 🔥</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ff0033"> <meta property="og:title" content="Mercado Rojo 🔥">
+    <meta property="og:description" content="El marketplace definitivo. Encuentra, califica y contacta.">
+    <meta property="og:image" content="./assets/og-image.jpg"> <title>Mercado Rojo | La Zona</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="dark-theme">
 
-    <header>
-        <div class="logo">MERCADO <span class="text-red">ROJO</span></div>
-        <div class="search-bar">
-            <input type="text" id="buscador" placeholder="Buscar..." onkeyup="filtrarPorBusqueda()">
+    <nav class="navbar animate-slide-down">
+        <div class="nav-container">
+            <div class="brand">
+                <span class="material-icons-round icon-fire">local_fire_department</span>
+                <span class="logo-text">MERCADO<span class="text-highlight">ROJO</span></span>
+            </div>
+
+            <div class="search-wrapper">
+                <span class="material-icons-round search-icon">search</span>
+                <input type="text" id="buscador" placeholder="Buscar por nombre, apodo..." autocomplete="off">
+            </div>
+
+            <div class="nav-actions">
+                <button id="btn-publicar" class="btn btn-primary ripple" onclick="abrirModalAgregar()">
+                    <span class="material-icons-round">add</span>
+                    <span class="btn-text">Publicar</span>
+                </button>
+            </div>
         </div>
-        <button id="btn-publicar" onclick="abrirModalAgregar()">+ PUBLICAR</button>
-    </header>
+    </nav>
 
-    <div class="filtros-container">
-        <button class="pill active" onclick="filtrar('todos', this)">Todos</button>
-        <button class="pill" onclick="filtrar('mujeres', this)">Mujeres</button>
-        <button class="pill" onclick="filtrar('hombres', this)">Hombres</button>
-        <button class="pill" onclick="filtrar('enanos', this)">Enanos</button>
-        <button class="pill" onclick="filtrar('perros', this)">Perros</button>
+    <section class="filters-section animate-fade-in">
+        <div class="filters-scroll">
+            <button class="filter-pill active" data-cat="todos" onclick="filtrar('todos', this)">
+                <span class="material-icons-round">apps</span> Todos
+            </button>
+            <button class="filter-pill" data-cat="mujeres" onclick="filtrar('mujeres', this)">
+                <span class="material-icons-round">female</span> Mujeres
+            </button>
+            <button class="filter-pill" data-cat="hombres" onclick="filtrar('hombres', this)">
+                <span class="material-icons-round">male</span> Hombres
+            </button>
+            <button class="filter-pill" data-cat="enanos" onclick="filtrar('enanos', this)">
+                <span class="material-icons-round">accessibility_new</span> Enanos
+            </button>
+            <button class="filter-pill" data-cat="perros" onclick="filtrar('perros', this)">
+                <span class="material-icons-round">pets</span> Perros
+            </button>
+        </div>
         
-        <select id="ordenar" onchange="ordenarProductos()">
-            <option value="defecto">Ordenar por...</option>
-            <option value="calidadPrecio">🔥 Mejor Calidad/Precio</option>
-            <option value="barato">💲 Menor Precio</option>
-            <option value="oral">👄 Mejor Oral</option>
-        </select>
-    </div>
-
-    <main id="contenedor-cards"></main>
-
-    <div id="modal-agregar" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModales()">&times;</span>
-            <h2>Nueva Publicación</h2>
-            <input type="text" id="input-nombre" placeholder="Nombre o Apodo">
-            <select id="input-categoria">
-                <option value="mujeres">Mujer</option>
-                <option value="hombres">Hombre</option>
-                <option value="enanos">Enano</option>
-                <option value="perros">Perro</option>
+        <div class="sort-wrapper">
+            <select id="ordenar" onchange="ordenarProductos()" class="custom-select">
+                <option value="defecto">Ordenar por...</option>
+                <option value="calidadPrecio">🔥 Calidad/Precio</option>
+                <option value="barato">💸 Menor Precio</option>
+                <option value="oral">👅 Mejor Oral</option>
             </select>
-            <input type="number" id="input-precio" placeholder="Precio ($)">
+        </div>
+    </section>
+
+    <main class="main-container">
+        <div id="contenedor-cards" class="grid-layout">
+            <div class="card skeleton"></div>
+            <div class="card skeleton"></div>
+            <div class="card skeleton"></div>
+        </div>
+        
+        <div id="no-results" class="hidden">
+            <span class="material-icons-round">sentiment_dissatisfied</span>
+            <p>No encontramos nada, bro. Sube algo vos.</p>
+        </div>
+    </main>
+
+    <div id="modal-agregar" class="modal-backdrop hidden">
+        <div class="modal-card animate-zoom-in">
+            <header class="modal-header">
+                <h2>Nueva Incorporación</h2>
+                <button class="btn-icon-close" onclick="cerrarModales()"><span class="material-icons-round">close</span></button>
+            </header>
             
-            <div class="rango-box">
-                <label>Nivel Oral (1-10): <span id="val-oral">5</span></label>
-                <input type="range" id="input-oral" min="1" max="10" value="5" oninput="document.getElementById('val-oral').innerText = this.value">
+            <div class="modal-body">
+                <div class="image-upload-area" id="drop-zone">
+                    <input type="file" id="input-file-api" accept="image/*" hidden>
+                    <input type="hidden" id="input-foto-url"> <div class="upload-placeholder" onclick="document.getElementById('input-file-api').click()">
+                        <span class="material-icons-round">cloud_upload</span>
+                        <p>Toca para subir foto</p>
+                    </div>
+                    
+                    <div id="upload-preview" class="hidden">
+                        <img id="img-preview" src="" alt="Previsualización">
+                        <div id="loading-api" class="loading-overlay hidden">
+                            <div class="spinner"></div>
+                            <span>Comprimiendo...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Nombre / Apodo</label>
+                        <input type="text" id="input-nombre" placeholder="Ej: La Turbina">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="input-categoria">
+                            <option value="mujeres">Mujer</option>
+                            <option value="hombres">Hombre</option>
+                            <option value="enanos">Enano</option>
+                            <option value="perros">Perro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Precio ($)</label>
+                        <input type="number" id="input-precio" placeholder="1500">
+                    </div>
+                    
+                    <div class="form-group full-width range-group">
+                        <div class="range-header">
+                            <label>Nivel Oral 👄</label>
+                            <span id="val-oral" class="range-value">5</span>
+                        </div>
+                        <input type="range" id="input-oral" min="1" max="10" value="5" class="slider-red">
+                    </div>
+
+                    <div class="form-group full-width range-group">
+                        <div class="range-header">
+                            <label>Movilidad 🏃‍♂️</label>
+                            <span id="val-mov" class="range-value">5</span>
+                        </div>
+                        <input type="range" id="input-movilidad" min="1" max="10" value="5" class="slider-red">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>WhatsApp (Sin +)</label>
+                        <input type="tel" id="input-whatsapp" placeholder="54911...">
+                    </div>
+                </div>
             </div>
 
-            <div class="rango-box">
-                <label>Movilidad (1-10): <span id="val-mov">5</span></label>
-                <input type="range" id="input-movilidad" min="1" max="10" value="5" oninput="document.getElementById('val-mov').innerText = this.value">
-            </div>
-
-            <input type="text" id="input-foto" placeholder="URL de Foto (o deja vacío)">
-            <input type="text" id="input-whatsapp" placeholder="Teléfono (Ej: 54911...)">
-            <button class="btn-full-red" onclick="guardarNuevoPerfil()">CONFIRMAR PUBLICACIÓN</button>
+            <footer class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn btn-primary glow" onclick="guardarNuevoPerfil()">PUBLICAR AHORA</button>
+            </footer>
         </div>
     </div>
 
-    <div id="modal-detalle" class="modal">
-        <div class="modal-content detalle-content">
-            <span class="close" onclick="cerrarModales()">&times;</span>
+    <div id="modal-detalle" class="modal-backdrop hidden">
+        <div class="modal-card modal-large animate-slide-up">
+            <button class="btn-floating-close" onclick="cerrarModales()"><span class="material-icons-round">arrow_back</span></button>
             
-            <div id="detalle-info"></div>
+            <div id="detalle-content-dinamico">
+                </div>
 
-            <div class="seccion-comentarios">
-                <h3>Opiniones sobre el servicio</h3>
-                <div id="lista-comentarios" class="lista-comentarios">
+            <div class="comments-section">
+                <h3>Reseñas de la comunidad</h3>
+                <div id="lista-comentarios" class="comments-list">
                     </div>
                 
-                <div class="agregar-comentario">
-                    <input type="text" id="txt-comentario" placeholder="Escribe tu opinión honesta...">
-                    <button onclick="publicarComentario()">OPINAR</button>
+                <div class="comment-input-area">
+                    <input type="text" id="txt-comentario" placeholder="Escribe tu reseña honesta...">
+                    <button class="btn-send" onclick="publicarComentario()">
+                        <span class="material-icons-round">send</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="js/app.js"></script>
 </body>
-  </html>
-  
+</html>
