@@ -1,14 +1,13 @@
 // ==========================================
 // 1. CONFIGURACIÓN SUPABASE
-// ==========================================
-// ¡OJO! Reemplaza esto con TUS claves de Supabase (Project Settings -> API)
-const SUPABASE_URL = 'TU_SUPABASE_URL_AQUI';
-const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY_AQUI';
+// =========================================
+const SUPABASE_URL = 'https://hlwjnvhqnviqdtjprcqy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_AGycHAbKvjW5I81KoMSCzA_FlmWZhEx'; // Usamos la Public Key (Segura)
 
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Variables Globales
-let perfilesCache = []; // Guardamos los datos aquí para no saturar la DB
+let perfilesCache = []; 
 let perfilActualId = null;
 
 // ==========================================
